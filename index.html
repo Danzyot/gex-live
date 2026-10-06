@@ -38,6 +38,10 @@
   li .px { font-variant-numeric: tabular-nums; color: var(--dim); }
   li.minor { opacity: .55; }
   li.here { background: #1e242e; }
+  .info { font-size: 13px; color: var(--dim); }
+  .info p { margin: 0 0 10px; }
+  .info b { color: var(--text); font-weight: 600; }
+  .info a { color: var(--text); }
   .warn { color: var(--neg); }
   #lock { position: fixed; inset: 0; background: var(--bg); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
   #lock form { width: 100%; max-width: 320px; display: grid; gap: 10px; }
@@ -78,7 +82,25 @@
     <div class="near" id="near"></div>
     <h2>Levels</h2>
     <ul id="list"></ul>
-    <p class="muted" id="foot"></p>
+    <h2>How this page works</h2>
+    <div class="info">
+      <p><b>The chart</b> shows NQ futures candles. It refreshes by itself every minute, but the candles are
+        <b>about 10 minutes behind the market</b> (free futures data is always delayed). Use it to see where
+        price sits against the levels, not to time an entry.</p>
+      <p><b>The GEX levels</b> come from the QQQ, SPY and NDX options and are converted to NQ prices. They are
+        recalculated every 10 minutes and show up here within a few minutes. <span id="chainNote"></span>
+        Before the 09:30 New York open the gamma flip is the last session's; today's comes after the open.</p>
+      <p><b>Colours:</b> <span style="color:var(--pos)">blue</span> = positive gamma (call side),
+        <span style="color:var(--neg)">gold</span> = negative gamma (put side),
+        <span style="color:var(--flip)">magenta</span> = gamma flip,
+        <span style="color:var(--other)">grey</span> = a level SPY and QQQ share.</p>
+      <p><b>On your own TradingView chart instead:</b> add the
+        <a href="https://www.tradingview.com/script/gWpY41L7-GEX-Levels/" target="_blank" rel="noopener">GEX Levels</a>
+        indicator (or <a href="https://www.tradingview.com/script/8WzuGthc-GEX-Levels-Mobile/" target="_blank" rel="noopener">GEX Levels Mobile</a>
+        on the phone). You get the same levels on your real-time chart, but they update only 4 times a day
+        (new levels about 09:20, 10:55, 14:45 and 17:35 New York), and you have to remove and re-add the
+        indicator each time. This page is the fastest way to see the newest levels.</p>
+    </div>
   </aside>
 </div>
 <script src="https://unpkg.com/lightweight-charts@4.2.3/dist/lightweight-charts.standalone.production.js"></script>
@@ -207,8 +229,10 @@ function panel(lv, last) {
   document.getElementById("status").innerHTML = data.levelsTime
     ? `levels from ${hm(data.levelsTime / 1000)} NY` + (age > 25 ? ` <span class="warn">(${age} min old)</span>` : "")
     : "no levels yet";
-  document.getElementById("foot").innerHTML = `Levels update every 10 minutes (0DTE options${data.chain === "gex_one" ? ", next day's chain after the close" : ""}). ` +
-    `Candles are NQ futures, about 10 minutes delayed. Lines are mapped from QQQ, SPY and NDX options to NQ.`;
+  document.getElementById("status").innerHTML += " · chart about 10 min delayed, refreshes every minute";
+  document.getElementById("chainNote").textContent = data.chain === "gex_one"
+    ? "Right now these are the next trading day's options (after the close)."
+    : "Right now these are today's options (0DTE).";
 }
 
 /* the data is encrypted with the passcode (AES-GCM, key by PBKDF2-SHA256), gzipped inside */
